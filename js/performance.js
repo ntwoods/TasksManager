@@ -115,7 +115,7 @@ async function loadPerformance(email) {
     document.getElementById('onTime').textContent = data.onTime;
     document.getElementById('late').textContent = data.late;
     document.getElementById('pending').textContent = data.pending;
-    document.getElementById('targetPercent').textContent = data.target; // Using 'target' from Code.gs
+    document.getElementById('targetPercent').textContent = data.targetPercent; // Using 'target' from Code.gs
     document.getElementById('achieved').textContent = data.achieved;
 
     const statusMessageElement = document.getElementById('statusMessage');
