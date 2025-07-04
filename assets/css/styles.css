@@ -439,3 +439,91 @@ h1, h2, h3, h4, h5, h6 {
         padding: 30px;
     }
 }
+
+/* styles.css additions for performance cards */
+
+.summary-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Responsive grid */
+    gap: 1rem; /* Space between cards */
+    margin-bottom: 1.5rem;
+}
+
+.performance-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.performance-card p {
+    margin: 0; /* Remove default paragraph margin */
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.performance-card .metric-value {
+    font-size: 1.8rem; /* Larger font size for the metric number */
+    font-weight: bold;
+    color: #333;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between number and icon */
+}
+
+/* Optional: Color-code cards based on status, similar to task cards */
+.performance-card.status-on-time {
+    border-left: 5px solid #28a745; /* Green for on-time/achieved */
+}
+
+.performance-card.status-late {
+    border-left: 5px solid #dc3545; /* Red for late/below target */
+}
+
+.performance-card.status-pending {
+    border-left: 5px solid #ffc107; /* Orange for pending */
+}
+
+/* Ensure icons within cards are styled correctly */
+.performance-card .fa-icon {
+    font-size: 1.5rem; /* Adjust icon size within cards */
+    color: #007bff; /* Default icon color */
+}
+
+.performance-card.status-on-time .fa-icon {
+    color: #28a745;
+}
+
+.performance-card.status-late .fa-icon {
+    color: #dc3545;
+}
+
+.performance-card.status-pending .fa-icon {
+    color: #ffc107;
+}
+
+/* Existing styles for status messages can remain or be adjusted */
+.status-message {
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 1rem;
+    text-align: center;
+    font-weight: bold;
+}
+
+.status-message.status-on-time {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-message.status-late {
+    background-color: #f8d7da;
+    color: #721c24;
+}
