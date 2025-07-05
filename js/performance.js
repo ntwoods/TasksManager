@@ -2,35 +2,40 @@ const API_BASE = 'https://script.google.com/macros/s/AKfycbwhDtFSlkxERwc5sxesB5t
 
 let userEmail = ''; // This variable will be set from sessionStorage
 
-/**
- * Initializes the performance page by retrieving the user's email from sessionStorage.
- * If no email is found, it redirects the user to the login page.
- * Otherwise, it loads the user's tasks and performance data.
- */
+function getShortName(email) {
+  return email.split('@')[0];
+}
+
+function getEmailColorClass(email) {
+  const key = email.toLowerCase();
+  const colorMap = {
+    "aniket@gmail.com": "card-aniket",
+    "mis01@ntwoods.com": "card-mis",
+    "dinesh@gmail.com": "card-dinesh",
+    "cleaning@gmail.com": "card-cleaning",
+    "accounts@ntwoods.com": "card-accounts"
+    // Add more mappings as needed
+  };
+  return colorMap[key] || "card-default"; // Fallback class
+}
+
 async function initializePerformancePage() {
   userEmail = sessionStorage.getItem('userEmail');
   const userName = sessionStorage.getItem('userName');
 
   if (!userEmail) {
-    // If no user email, redirect to login page
     window.location.href = 'portal.html';
     return;
   }
 
-  // Display user name
   document.getElementById('userName').textContent = userName || 'User';
 
-  // Load tasks and performance for the authenticated user
-  showLoader(); // Show loader before fetching data
+  showLoader();
   await loadTasks(userEmail);
   await loadPerformance(userEmail);
-  hideLoader(); // Hide loader after data is loaded
+  hideLoader();
 }
 
-/**
- * Loads tasks assigned to the specified email.
- * @param {string} email The email of the user to load tasks for.
- */
 async function loadTasks(email) {
   try {
     const res = await fetch(`${API_BASE}?action=getUserTasks&email=${email}`);
@@ -43,29 +48,32 @@ async function loadTasks(email) {
     }
 
     const container = document.getElementById('taskList');
-    container.innerHTML = ''; // Clear previous tasks
+    container.innerHTML = '';
 
     result.tasks.forEach(task => {
       const taskCard = document.createElement('div');
-      taskCard.className = 'task-card'; // Use custom class
 
       const statusColorClass =
         task.Status === 'On Time' ? 'status-on-time' :
         task.Status === 'Late' ? 'status-late' :
         'status-pending';
 
-      // Format the planned date to dd-mmm-yyyy
       const plannedDate = new Date(task['Planned Date']);
       const formattedPlannedDate = plannedDate.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
         year: 'numeric'
-      }).replace(/ /g, '-'); // Replace spaces with hyphens for dd-mmm-yyyy format
+      }).replace(/ /g, '-');
 
+      const assignedShort = getShortName(task['Assigned To']);
+      const emailColorClass = getEmailColorClass(task['Assigned To']);
+
+      taskCard.className = `task-card ${emailColorClass}`;
 
       taskCard.innerHTML = `
         <h3 class="text-lg font-semibold mb-1">${task.Task}</h3>
         <p><strong>Planned:</strong> ${formattedPlannedDate}</p>
+        <p><strong>Assigned To:</strong> ${assignedShort}</p>
         <p><strong>Status:</strong> <span class="${statusColorClass}">${task.Status}</span></p>
         ${task.Status === 'Pending' ? `<button class="btn btn-mark-done"
           data-taskid="${task['Task ID']}"
@@ -75,7 +83,6 @@ async function loadTasks(email) {
       container.appendChild(taskCard);
     });
 
-    // Attach event listeners to "Mark Done" buttons
     document.querySelectorAll('.btn-mark-done').forEach(btn => {
       btn.addEventListener('click', async () => {
         const taskID = btn.dataset.taskid;
@@ -84,7 +91,7 @@ async function loadTasks(email) {
             'Confirm Task Completion',
             `Are you sure you want to mark "${taskID}" as done?`,
             [
-                { text: 'Cancel', className: 'btn btn-danger', onClick: () => console.log('Mark done cancelled') },
+                { text: 'Cancel', className: 'btn btn-danger', onClick: () => console.log('Cancelled') },
                 { text: 'Confirm', className: 'btn btn-success', onClick: () => markTaskAsDone(taskID, date) }
             ]
         );
@@ -96,10 +103,6 @@ async function loadTasks(email) {
   }
 }
 
-/**
- * Loads performance statistics for the specified email.
- * @param {string} email The email of the user to load performance for.
- */
 async function loadPerformance(email) {
   try {
     const res = await fetch(`${API_BASE}?action=getMyPerformance&email=${email}`);
@@ -115,13 +118,13 @@ async function loadPerformance(email) {
     document.getElementById('onTime').textContent = data.onTime;
     document.getElementById('late').textContent = data.late;
     document.getElementById('pending').textContent = data.pending;
-    document.getElementById('targetPercent').textContent = data.targetPercent; // Using 'target' from Code.gs
+    document.getElementById('targetPercent').textContent = data.targetPercent;
     document.getElementById('achieved').textContent = data.achieved;
 
     const statusMessageElement = document.getElementById('statusMessage');
-    statusMessageElement.classList.remove('status-on-time', 'status-late', 'status-pending'); // Clear previous classes
+    statusMessageElement.classList.remove('status-on-time', 'status-late', 'status-pending');
 
-    if (data.achieved >= data.target) { // Using 'target' from Code.gs
+    if (data.achieved >= data.target) {
       statusMessageElement.textContent = "✅ Target Achieved!";
       statusMessageElement.classList.add('status-on-time');
     } else {
@@ -134,11 +137,6 @@ async function loadPerformance(email) {
   }
 }
 
-/**
- * Marks a task as done for the current user.
- * @param {string} taskID The ID of the task to mark as done.
- * @param {string} date The planned date of the task.
- */
 async function markTaskAsDone(taskID, date) {
   showLoader();
   try {
@@ -146,7 +144,7 @@ async function markTaskAsDone(taskID, date) {
       action: 'markTaskDone',
       email: userEmail,
       taskID: taskID,
-      plannedDate: date // Corrected parameter name to match Code.gs
+      plannedDate: date
     });
 
     const res = await fetch(API_BASE, {
@@ -157,8 +155,8 @@ async function markTaskAsDone(taskID, date) {
     const result = await res.json();
     if (result.status === 'success') {
       showToast('Task marked as done!', 'success');
-      await loadTasks(userEmail); // Reload tasks to update status
-      await loadPerformance(userEmail); // Reload performance to update stats
+      await loadTasks(userEmail);
+      await loadPerformance(userEmail);
     } else {
       console.error('Failed to mark task done:', result.message);
       showToast(`Failed to mark task done: ${result.message}`, 'error');
@@ -170,7 +168,3 @@ async function markTaskAsDone(taskID, date) {
     hideLoader();
   }
 }
-
-// Initial call to load data when the page loads
-// This is now triggered by the onload event in performance.html body
-// document.addEventListener('DOMContentLoaded', initializePerformancePage);
