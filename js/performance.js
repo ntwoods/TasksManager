@@ -10,7 +10,7 @@ function getEmailColorClass(email) {
   const key = email.toLowerCase();
   const colorMap = {
     "aniket@gmail.com": "card-aniket",
-    "mis01@ntwoods.com": "card-mis",
+    "pc01@ntwoods.com": "card-mis",
     "dinesh@gmail.com": "card-dinesh",
     "cleaning@gmail.com": "card-cleaning",
     "accounts@ntwoods.com": "card-accounts"
